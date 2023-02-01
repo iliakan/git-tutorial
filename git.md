@@ -36,11 +36,8 @@ Existing Tutorials
 
 Hello, Git!
 ================
+
 Git stores the history of a file directory and allows to share it with others.
-
-Do you know how to use the command line?
-
-If not, `click here to read about it`.
 
 Do you have git installed?
 
@@ -53,7 +50,11 @@ If not:
 - [Icon] Linux:
     - Use `apt-get install git` or a similar command of your package manager.
 
-You can check if git is installed by typing in the command line:
+Please open the terminal.
+
+If you don't know how to do it, please read here.
+
+You can check if git is correctly by typing in the command line:
 
 > git version
 

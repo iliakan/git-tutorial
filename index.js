@@ -19,8 +19,6 @@ app.use(async function(ctx, next) {
   }
 });
 
-
 app.use(serve('www'));
-
 
 if (!module.parent) app.listen(3000);
