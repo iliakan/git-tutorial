@@ -1,3 +1,5 @@
+// from https://github.com/ankitrohatgi/tarballjs
+
 class TarReader {
   constructor() {
       this.fileInfo = [];

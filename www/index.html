@@ -19,6 +19,9 @@ let projectDirHandle;
 // maybe we can save this handle to storage and restore it
 // so once perm is granted we can avoid re-asking it at least while any tab with the site is open
 // @see https://developer.chrome.com/articles/file-system-access/
+
+// TODO: we can watch the folder by checking file.lastModified, update our fs and re-run tests
+
 getPermsButton.onclick = async (evt) => {
   // open mode:'read' for first repos
   projectDirHandle = await showDirectoryPicker({ mode: 'readwrite' });
@@ -120,6 +123,8 @@ async function readIntoFs(projectDirHandle) {
     for await (const entry of dirHandle.values()) {
       if (entry.kind === "file") {
         const file = await entry.getFile();
+
+        // console.log(file.lastModified);
         let data = new Uint8Array(await file.arrayBuffer());
         let filePath = [...relPath, file.name].join('/');
         console.log(filePath);

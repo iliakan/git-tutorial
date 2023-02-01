@@ -31,6 +31,9 @@ Existing Tutorials
 - Play with branches w/ d3.js https://onlywei.github.io/explain-git-with-d3/
   - forked to https://github.com/iliakan/explain-git-with-d3
 
+- https://www.codecademy.com/learn/learn-git
+  - go through actions, control the result, do projects
+
 Hello, Git!
 ================
 Git stores the history of a file directory and allows to share it with others.
