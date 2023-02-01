@@ -1,0 +1,164 @@
+<h1>POC, check repository</h1>
+
+<button id="getPermsButton">Get permissions</button>
+<hr>
+<button id="downloadProjectButton">Replace the folder contents with git.tar</button>
+<hr>
+<button id="checkProjectButton">Read and check the folder</button>
+
+
+<script src="https://unpkg.com/@isomorphic-git/lightning-fs"></script>
+<script src="https://unpkg.com/isomorphic-git"></script>
+<script src="untar.js"></script>
+<script type="module">
+let fs;
+
+let projectDirHandle;
+
+// TODO: we can maybe check with queryPermissions if we have saved permissions from past runs
+// maybe we can save this handle to storage and restore it
+// so once perm is granted we can avoid re-asking it at least while any tab with the site is open
+// @see https://developer.chrome.com/articles/file-system-access/
+getPermsButton.onclick = async (evt) => {
+  // open mode:'read' for first repos
+  projectDirHandle = await showDirectoryPicker({ mode: 'readwrite' });
+};
+
+async function getDirectoryHandleForPath(path, options = {}) {
+  path = Array.isArray(path) ? path : path.split('/').filter(Boolean);
+
+  let handler = projectDirHandle;
+  while(path.length) {
+    handler = await handler.getDirectoryHandle(path.shift(), options);
+  }
+
+  return handler;
+}
+
+downloadProjectButton.onclick = async (evt) => {
+
+  let gitTar = await fetch('/git.tar');
+  gitTar = await gitTar.blob();
+
+  let tarReader = new TarReader();
+
+  let entries = await tarReader.readFile(gitTar);
+
+  console.log(entries);
+
+  // clear project folder
+  for await (const entry of projectDirHandle.values()) {
+    console.log("Remove", entry.name);
+    await projectDirHandle.removeEntry(entry.name, {recursive: true});
+  }
+
+  for(let entry of entries) {
+    if (entry.type == 'file') {
+      let path = entry.name.split('/');
+      let name = path.pop();
+      let dirHandle = await getDirectoryHandleForPath(path);
+      let fileHandle = await dirHandle.getFileHandle(name, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(tarReader.getFileBlob(entry.name));
+      await writable.close();
+    } else if (entry.type == "directory") {
+      let dirHandle = await getDirectoryHandleForPath(entry.name, {create: true});
+    }
+  }
+
+  /*
+  await handleDirectoryEntry( projectDirHandle );
+
+  let dirs = await fs.promises.readdir('/');
+  let log = await git.log({fs, dir: '/'})
+
+  // get the status of all the files in 'src'
+  let status = await git.statusMatrix({
+    fs,
+    dir: '/',
+  })
+  console.log(status); // status matrix
+
+  console.log("WOW", log);*/
+};
+
+checkProjectButton.onclick = async (evt) => {
+  await readIntoFs(projectDirHandle);
+
+  /* check structure?
+  let structure = {
+    'c2': 'c1',
+    'HEAD': 'master',
+    'master': 'c2'
+  }
+  */
+
+  let c1;
+  try {
+    c1 = await git.resolveRef({ fs, dir: '/', ref: 'c1' })
+  } catch(e) {
+    if (e.name == "NotFoundError") {
+      console.log("No commit C1");
+      return;
+    }
+  }
+
+  let c2 = await git.resolveRef({ fs, dir: '/', ref: 'c2' });
+
+  let isDescendent = await git.isDescendent({ fs, dir: '/', oid: c2, ancestor: c1 })
+  console.log(isDescendent);
+};
+
+async function readIntoFs(projectDirHandle) {
+
+  fs = new LightningFS('fs', {wipe: true});
+
+  // all paths for git.methods must be absolute! /index.html
+  let relPath = [''];
+
+  async function handle(dirHandle) {
+    for await (const entry of dirHandle.values()) {
+      if (entry.kind === "file") {
+        const file = await entry.getFile();
+        let data = new Uint8Array(await file.arrayBuffer());
+        let filePath = [...relPath, file.name].join('/');
+        console.log(filePath);
+        // debugger;
+        await fs.promises.writeFile(filePath, data);
+      }
+      if (entry.kind === "directory") {
+        const newHandle = await dirHandle.getDirectoryHandle( entry.name, { create: false } );
+        relPath.push(entry.name);
+        let dirPath = relPath.join('/');
+        console.log(dirPath);
+        await fs.promises.mkdir(dirPath);
+        await handle(newHandle);
+        relPath.pop();
+      }
+    }
+  }
+
+  await handle(projectDirHandle);
+}
+
+
+/*
+async function readDirectory( projectDirHandle, out ) {
+  for await (const entry of projectDirHandle.values()) {
+    console.log(entry);
+    if (entry.kind === "file") {
+
+      const file = await entry.getFile();
+      out[ file.name ] = file;
+    }
+    if (entry.kind === "directory") {
+      const newHandle = await projectDirHandle.getDirectoryHandle( entry.name, { create: false } );
+      const newOut = out[ entry.name ] = { __proto__: null };
+      await readDirectory( newHandle, newOut );
+    }
+  }
+}
+*/
+
+
+</script>

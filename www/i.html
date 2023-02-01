@@ -1,0 +1,12 @@
+<button id="btn">GO</button>
+<script src="https://unpkg.com/@isomorphic-git/lightning-fs"></script>
+<script src="https://unpkg.com/isomorphic-git"></script>
+<script type="module">
+const fs = new LightningFS('fs', {wipe: true})
+
+let data = new Uint8Array(2);
+
+// paths must be absolute!
+fs.promises.writeFile('/index.html', data);
+
+</script>

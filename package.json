@@ -1,0 +1,25 @@
+{
+  "name": "my-webpack-project",
+  "version": "1.0.0",
+  "description": "My webpack project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --mode=production --node-env=production",
+    "build:dev": "webpack --mode=development",
+    "build:prod": "webpack --mode=production --node-env=production",
+    "watch": "webpack --watch",
+    "serve": "webpack serve"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "isomorphic-git": "^1.21.0",
+    "koa": "^2.14.1",
+    "koa-static": "^5.0.0"
+  },
+  "devDependencies": {
+    "@webpack-cli/generators": "^3.0.1",
+    "webpack-cli": "^5.0.1"
+  }
+}
